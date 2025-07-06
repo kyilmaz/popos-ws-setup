@@ -1,8 +1,9 @@
 #!/bin/bash
-# Pop!_OS 22.04 LTS Installation Script - Lenovo Thinkpad E15 - Nvidia MX450
-# Enhanced version with power management and performance optimization
-# + PySpark & RetroLab (for Colab-like experience)
-# Optimized for AI and Development workloads
+# Pop!_OS 22.04 LTS Installation Script - 
+# Lenovo Thinkpad E15 - Nvidia MX450
+# Optimized for Development workloads
+# Powered by Kyilmaz
+# 
 
 # --- Configuration ---
 # Set to true to enable installation of specific steps
