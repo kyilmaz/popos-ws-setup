@@ -192,20 +192,27 @@ if [ ! -d "$HOME/anaconda3" ]; then
     sudo apt-get update
     sudo apt-get -y install cuda-toolkit-12-2
 
-    log "Configuring conda channels..."
-    "$HOME/anaconda3/bin/conda" config --add channels conda-forge
-    "$HOME/anaconda3/bin/conda" config --set channel_priority strict
+    log "Configuring conda channels and solver..."
+    # Ensure conda-forge is the highest priority
+    "$HOME/anaconda3/bin/conda" config --add channels conda-forge || log_warning "Failed to add conda-forge channel"
+    "$HOME/anaconda3/bin/conda" config --add channels bioconda || log_warning "Failed to add bioconda channel"
+    # Set strict channel priority
+    "$HOME/anaconda3/bin/conda" config --set channel_priority strict || log_warning "Failed to set channel priority to strict"
+    # Install libmamba solver
+    "$HOME/anaconda3/bin/conda" install -y -n base conda-libmamba-solver || log_warning "Failed to install conda-libmamba-solver"
+    # Set libmamba as the default solver
+    "$HOME/anaconda3/bin/conda" config --set solver libmamba || log_warning "Failed to set solver to libmamba"
+    # Remove defaults channel if it's still there and causing issues with strict priority
+    "$HOME/anaconda3/bin/conda" config --remove channels defaults 2>/dev/null || true # Suppress error if defaults not found
 
     log "Installing conda packages..."
-    "$HOME/anaconda3/bin/conda" install -y jupyter notebook matplotlib pandas numpy scipy scikit-learn seaborn plotly bokeh opencv transformers nltk spacy pyspark
-
-    log "Installing pip packages..."
-    "$HOME/anaconda3/bin/pip" install huggingface_hub streamlit gradio fastapi uvicorn torchvision torchaudio
+    "$HOME/anaconda3/bin/conda" install -y jupyter notebook matplotlib pandas numpy scipy scikit-learn seaborn plotly bokeh opencv transformers nltk spacy pyspark huggingface_hub pydantic streamlit gradio fastapi uvicorn torchvision torchaudio || log_warning "Some conda packages failed to install"
 
     log "Setting up Jupyter..."
     "$HOME/anaconda3/bin/python" -m ipykernel install --user --name=base --display-name "Python (Conda Base)"
 fi
 
+sudo -v # Refresh Sudo cache
 log "Installing Visual Studio Code..."
 wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --yes --dearmor > /tmp/packages.microsoft.gpg
 sudo install -o root -g root -m 644 /tmp/packages.microsoft.gpg /etc/apt/trusted.gpg.d/
