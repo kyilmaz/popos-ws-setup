@@ -25,7 +25,7 @@ The script performs the following actions:
 
 1.  **Download the script:**
     ```bash
-    git clone https://github.com/YOUR_USERNAME/popos-ws-setup.git
+    git clone https://github.com/kyilmaz/popos-ws-setup.git
     cd popos-ws-setup
     ```
 
