@@ -183,29 +183,6 @@ rm /tmp/cuda-keyring.deb
 sudo apt-get update
 sudo apt-get -y install cuda-toolkit-12-2
 
-if [ ! -d "$HOME/miniconda3" ]; then
-    log "Downloading Miniconda Python Distribution..."
-    MINICONDA_INSTALLER="Miniconda3-latest-Linux-x86_64.sh"
-    MINICONDA_URL="https://repo.anaconda.com/miniconda/$MINICONDA_INSTALLER"
-    if wget -q "$MINICONDA_URL" -O /tmp/miniconda.sh; then
-        log "Installing Miniconda (this may take a while)..."
-        if bash /tmp/miniconda.sh -b -p "$HOME/miniconda3"; then
-            log "Initializing Conda..."
-            "$HOME/miniconda3/bin/conda" init bash || log_warning "Failed to initialize conda"
-            export PATH="$HOME/miniconda3/bin:$PATH"
-            log "Miniconda installed successfully."
-        else
-            log_warning "Failed to install Miniconda"
-        fi
-        rm -f /tmp/miniconda.sh
-    else
-        log_warning "Failed to download Miniconda"
-    fi
-else
-    log "Miniconda already installed."
-    export PATH="$HOME/miniconda3/bin:$PATH"
-fi
-
 CONDA_INSTALLER="Miniconda3-latest-Linux-x86_64.sh"
 CONDA_DIR="/opt/miniconda3"
 CONDA_PROFILE="/etc/profile.d/conda.sh"
@@ -213,7 +190,7 @@ PACKAGES="notebook ipykernel pandas fastapi uvicorn"
 
 log "Installing miniconda and packages..."
 wget -q https://repo.anaconda.com/miniconda/$CONDA_INSTALLER || log_warning "miniconda download failed"
-bash $CONDA_INSTALLER -b -p $CONDA_DIR
+sudo bash $CONDA_INSTALLER -b -p $CONDA_DIR
 
 cat <<EOF > $CONDA_PROFILE
 # Miniconda global path
