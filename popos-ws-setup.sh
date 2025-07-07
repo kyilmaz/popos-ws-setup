@@ -206,33 +206,6 @@ else
     export PATH="$HOME/miniconda3/bin:$PATH"
 fi
 
-# Conda channel and solver configuration (moved here to apply after miniconda install)
-if [ -d "$HOME/miniconda3" ]; then
-    # log "Configuring conda channels and solver..."
-    # Ensure conda-forge is the highest priority
-	# "$HOME/miniconda3/bin/conda" install -y anaconda-clean || log_warning "Failed to install anaconda-clean"
-	# "$HOME/miniconda3/bin/conda" clean --all -y || log_warning "Failed to clear conda cache"
-    # "$HOME/miniconda3/bin/conda" config --add channels conda-forge || log_warning "Failed to add conda-forge channel"
-    # "$HOME/miniconda3/bin/conda" config --add channels bioconda || log_warning "Failed to add bioconda channel"
-    # # Set strict channel priority
-    # "$HOME/miniconda3/bin/conda" config --set channel_priority strict || log_warning "Failed to set channel priority to strict"
-    # # Install libmamba solver
-    # "$HOME/miniconda3/bin/conda" install -y -n base conda-libmamba-solver || log_warning "Failed to install conda-libmamba-solver"
-    # # Set libmamba as the default solver
-    # "$HOME/miniconda3/bin/conda" config --set solver libmamba || log_warning "Failed to set solver to libmamba"
-    # # Remove defaults channel if it's still there and causing issues with strict priority
-    # "$HOME/miniconda3/bin/conda" config --remove channels defaults 2>/dev/null || true # Suppress error if defaults not found
-	
-	
-	# "$HOME/miniconda3/bin/conda" install -y jupyter notebook pandas fastapi pydantic gradio fastapi uvicorn || log_warning "Some conda packages failed to install"
-	# "$HOME/miniconda3/bin/conda" install -y jupyter notebook matplotlib pandas numpy scipy scikit-learn seaborn plotly bokeh opencv transformers nltk spacy pyspark huggingface_hub pydantic streamlit gradio fastapi uvicorn torchvision torchaudio || log_warning "Some conda packages failed to install"
-	# Checking Conda Environment to fixup
-	# $HOME/miniconda3/bin/conda doctor -v 
-fi
-
-
-# ===============================================================================
-
 CONDA_INSTALLER="Miniconda3-latest-Linux-x86_64.sh"
 CONDA_DIR="/opt/miniconda3"
 CONDA_PROFILE="/etc/profile.d/conda.sh"
