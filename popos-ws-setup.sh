@@ -121,7 +121,7 @@ if ! grep -q "vm.swappiness" /etc/sysctl.conf; then
 fi
 
 log "Installing essential tools..."
-sudo apt-get install -y curl wget git build-essential dkms software-properties-common apt-transport-https ca-certificates gnupg lsb-release vim nano htop neofetch tree apt-file locate mlocate jq sqlite3
+sudo apt-get install -y curl wget git build-essential dkms software-properties-common apt-transport-https ca-certificates gnupg lsb-release vim nano htop neofetch tree apt-file locate mlocate jq
 
 log "Installing Additional Fonts..."
 sudo apt-get install -y fonts-ipafont-gothic fonts-ipafont-mincho fonts-wqy-microhei fonts-wqy-zenhei fonts-indic
