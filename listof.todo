@@ -1,0 +1,17 @@
+# ToDo
+wget -qO- https://get.casaos.io | sudo bash
+&& sadf
+%
+Use Repoman to fix sources 
+install & Configure -- NoMachine
+sudo apt install -y openssh-server
+Never Turnon Auto Updates
+Bluetooh to disable
+rustDesk settings apply
+nomachine settings apply
+
+than go to https://github.com/kyilmaz/popos-ws-setup
+
+than install CasaOS
+
+⇒ neovim from scratch https://github.com/Sin-cy/dotfiles
