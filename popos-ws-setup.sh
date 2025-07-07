@@ -141,11 +141,13 @@ sudo apt-get install -y ffmpeg obs-studio shotcut handbrake vlc
 log "Installing system tools..."
 sudo apt-get install -y filezilla gnome-disk-utility gparted tilix flameshot ncdu ranger fzf glances iotop tmux remmina remmina-plugin-rdp p7zip-full unzip gnome-tweaks dconf-editor postgresql-client redis-tools nginx
 
-log "Installing RustDesk..."
-RUSTDESK_VERSION=$(curl -s https://api.github.com/repos/rustdesk/rustdesk/releases/latest | grep -Po '"tag_name": "\K[^"]*')
-wget "https://github.com/rustdesk/rustdesk/releases/latest/download/rustdesk-${RUSTDESK_VERSION}-x86_64.deb" -O /tmp/rustdesk.deb
-sudo apt-get install -y /tmp/rustdesk.deb
-rm /tmp/rustdesk.deb
+if ! command -v rustdesk &> /dev/null; then
+    log "Installing RustDesk..."
+    RUSTDESK_VERSION=$(curl -s https://api.github.com/repos/rustdesk/rustdesk/releases/latest | grep -Po '"tag_name": "\K[^"]*')
+    wget "https://github.com/rustdesk/rustdesk/releases/latest/download/rustdesk-${RUSTDESK_VERSION}-x86_64.deb" -O /tmp/rustdesk.deb
+    sudo apt-get install -y /tmp/rustdesk.deb
+    rm /tmp/rustdesk.deb
+fi
 
 log "${BLUE}${DO_STEP_2} Completed${NC}"
 
@@ -176,35 +178,40 @@ if ! command -v node &> /dev/null; then
     sudo apt-get install -y nodejs
 fi
 
-log "Installing CUDA toolkit..."
-wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb -O /tmp/cuda-keyring.deb
-sudo dpkg -i /tmp/cuda-keyring.deb
-rm /tmp/cuda-keyring.deb
-sudo apt-get update
-sudo apt-get -y install cuda-toolkit-12-2
+if ! is_installed cuda-toolkit-12-2; then
+    log "Installing CUDA toolkit..."
+    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb -O /tmp/cuda-keyring.deb
+    sudo dpkg -i /tmp/cuda-keyring.deb
+    rm /tmp/cuda-keyring.deb
+    sudo apt-get update
+    sudo apt-get -y install cuda-toolkit-12-2
+fi
 
 CONDA_INSTALLER="Miniconda3-latest-Linux-x86_64.sh"
 CONDA_DIR="/opt/miniconda3"
 CONDA_PROFILE="/etc/profile.d/conda.sh"
 
-log "Installing miniconda and packages..."
-wget -q https://repo.anaconda.com/miniconda/$CONDA_INSTALLER || log_warning "miniconda download failed"
-sudo bash $CONDA_INSTALLER -b -p $CONDA_DIR
 
-eval "$($CONDA_DIR/bin/conda shell.bash hook)"
+if ! command -v conda &> /dev/null; then
+    log "Installing miniconda and packages..."
+    wget -q https://repo.anaconda.com/miniconda/$CONDA_INSTALLER || log_warning "miniconda download failed"
+    sudo bash $CONDA_INSTALLER -b -p $CONDA_DIR
 
-sudo $CONDA_DIR/bin/conda install -y jupyter pandas fastapi uvicorn || log_warning "x nailed"
+    eval "$($CONDA_DIR/bin/conda shell.bash hook)"
 
-sudo $CONDA_DIR/bin/conda install -y -c conda-forge bash-language-server dockerfile-language-server-nodejs pyright python-lsp-server sql-language-server texlab typescript-language-server yaml-language-server || log_warning "y nailed"
+    sudo $CONDA_DIR/bin/conda install -y jupyter pandas fastapi uvicorn || log_warning "x nailed"
 
-sudo $CONDA_DIR/bin/conda install -y -c conda-forge sqls jedi-language-server || log_warning "z nailed"
+    sudo $CONDA_DIR/bin/conda install -y -c conda-forge bash-language-server dockerfile-language-server-nodejs pyright python-lsp-server sql-language-server texlab typescript-language-server yaml-language-server || log_warning "y nailed"
 
-cat <<EOF > $HOME/_run_jupyter_readme.txt
-# Activate conda env
-conda activate base 
-# Please use notebooks via ssh tunnel these just only test case
-nohup jupyter notebook --no-browser --port=8888 --ip=0.0.0.0 > jupyter.log 2>&1 &
-EOF
+    sudo $CONDA_DIR/bin/conda install -y -c conda-forge sqls jedi-language-server || log_warning "z nailed"
+
+    cat <<EOF > $HOME/_run_jupyter_readme.txt
+    # Activate conda env
+    conda activate base 
+    # Please use notebooks via ssh tunnel these just only test case
+    nohup jupyter notebook --no-browser --port=8888 --ip=0.0.0.0 > jupyter.log 2>&1 &
+    EOF
+fi
 
 log "Installing Visual Studio Code..."
 wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --yes --dearmor > /tmp/packages.microsoft.gpg
