@@ -187,12 +187,11 @@ if ! is_installed cuda-toolkit-12-2; then
     sudo apt-get -y install cuda-toolkit-12-2
 fi
 
-CONDA_INSTALLER="Miniconda3-latest-Linux-x86_64.sh"
-CONDA_DIR="/opt/miniconda3"
-CONDA_PROFILE="/etc/profile.d/conda.sh"
-
-
 if ! command -v conda &> /dev/null; then
+
+    CONDA_INSTALLER="Miniconda3-latest-Linux-x86_64.sh"
+    CONDA_DIR="/opt/miniconda3"
+    
     log "Installing miniconda and packages..."
     wget -q https://repo.anaconda.com/miniconda/$CONDA_INSTALLER || log_warning "miniconda download failed"
     sudo bash $CONDA_INSTALLER -b -p $CONDA_DIR
@@ -204,22 +203,21 @@ if ! command -v conda &> /dev/null; then
     sudo $CONDA_DIR/bin/conda install -y -c conda-forge bash-language-server dockerfile-language-server-nodejs pyright python-lsp-server sql-language-server texlab typescript-language-server yaml-language-server || log_warning "y nailed"
 
     sudo $CONDA_DIR/bin/conda install -y -c conda-forge sqls jedi-language-server || log_warning "z nailed"
-
-    cat <<EOF > $HOME/_run_jupyter_readme.txt
-    # Activate conda env
-    conda activate base 
-    # Please use notebooks via ssh tunnel these just only test case
-    nohup jupyter notebook --no-browser --port=8888 --ip=0.0.0.0 > jupyter.log 2>&1 &
-    EOF
 fi
 
-log "Installing Visual Studio Code..."
-wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --yes --dearmor > /tmp/packages.microsoft.gpg
-sudo install -o root -g root -m 644 /tmp/packages.microsoft.gpg /etc/apt/trusted.gpg.d/
-echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" | sudo tee /etc/apt/sources.list.d/vscode.list > /dev/null
-rm /tmp/packages.microsoft.gpg
-sudo apt update
-sudo apt install -y code
+cat <<EOF > $HOME/_run_jupyter_readme.txt
+# Activate conda env
+conda activate base 
+# Please use notebooks via ssh tunnel these just only test case
+nohup jupyter notebook --no-browser --port=8888 --ip=0.0.0.0 > jupyter.log 2>&1 &
+EOF
+
+if ! command -v code &> /dev/null; then
+    log "Installing Visual Studio Code..."
+    echo "code code/add-microsoft-repo boolean true" | sudo debconf-set-selections
+    sudo apt update
+    sudo apt install -y code
+fi
 
 log "${BLUE}${DO_STEP_3} Completed${NC}"
 
@@ -242,7 +240,6 @@ sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plug
 
 log "Configuring Docker..."
 sudo mkdir -p /opt/containers/docker
-sudo chown -R docker:docker /opt/containers/docker
 sudo tee /etc/docker/daemon.json > /dev/null <<EOF
 {
   "data-root": "/opt/containers/docker",
