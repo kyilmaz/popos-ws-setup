@@ -159,8 +159,6 @@ fi
 
 log "Installing programming languages & libraries ..."
 
-C:\Users\kyilmaz\Documents\pinonai\popos-ws-setup\popos-ws-setup.sh
-
 if ! command -v rustc &> /dev/null; then
     log "Installing Rust..."
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
