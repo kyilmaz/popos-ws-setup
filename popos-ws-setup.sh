@@ -106,6 +106,13 @@ sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.ta
 gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-timeout 0
 gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type 'nothing'
 
+log "night-light settings to always on..."
+gsettings set org.gnome.settings-daemon.plugins.color night-light-enabled true
+gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-automatic false
+gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-from 0
+gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-to 24
+gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 5000
+
 log "Applying performance optimizations..."
 if ! is_installed tuned; then
     log "Installing tuned..."
