@@ -186,22 +186,24 @@ sudo apt-get -y install cuda-toolkit-12-2
 CONDA_INSTALLER="Miniconda3-latest-Linux-x86_64.sh"
 CONDA_DIR="/opt/miniconda3"
 CONDA_PROFILE="/etc/profile.d/conda.sh"
-PACKAGES="notebook ipykernel pandas fastapi uvicorn"
 
 log "Installing miniconda and packages..."
 wget -q https://repo.anaconda.com/miniconda/$CONDA_INSTALLER || log_warning "miniconda download failed"
 sudo bash $CONDA_INSTALLER -b -p $CONDA_DIR
 
-cat <<EOF > $CONDA_PROFILE
-# Miniconda global path
-export PATH="$CONDA_DIR/bin:\$PATH"
-EOF
-chmod +x $CONDA_PROFILE
-
 eval "$($CONDA_DIR/bin/conda shell.bash hook)"
 
+sudo $CONDA_DIR/bin/conda install -y jupyter pandas fastapi uvicorn || log_warning "x nailed"
+
+sudo $CONDA_DIR/bin/conda install -y -c conda-forge bash-language-server dockerfile-language-server-nodejs pyright python-lsp-server sql-language-server texlab typescript-language-server yaml-language-server || log_warning "y nailed"
+
+sudo $CONDA_DIR/bin/conda install -y -c conda-forge sqls jedi-language-server || log_warning "z nailed"
+
 cat <<EOF > $HOME/_run_jupyter_readme.txt
-conda activate base && jupyter notebook
+# Activate conda env
+conda activate base 
+# Please use notebooks via ssh tunnel these just only test case
+nohup jupyter notebook --no-browser --port=8888 --ip=0.0.0.0 > jupyter.log 2>&1 &
 EOF
 
 log "Installing Visual Studio Code..."
@@ -325,7 +327,7 @@ DISPLAY=$remoteip:0.0; export DISPLAY
 
 export PS1="\033[38;5;209m\]┌──[\033[38;5;141m\]\u\033[38;5;209m\]:\033[38;5;105m\]\h\033[38;5;231m\]\W\033[38;5;209m\]]\n\033[38;5;209m\]└─\\[\033[38;5;209m\]$\[\033[37m\] "
 
-export PATH="$HOME/.cargo/bin:$HOME/miniconda3/bin:$PATH"
+export PATH="$HOME/.cargo/bin:/opt/miniconda3/bin::$PATH"
 
 EOF
 
