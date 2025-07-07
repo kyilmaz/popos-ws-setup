@@ -128,7 +128,7 @@ if ! grep -q "vm.swappiness" /etc/sysctl.conf; then
 fi
 
 log "Installing essential tools..."
-sudo apt-get install -y curl wget git build-essential dkms software-properties-common apt-transport-https ca-certificates gnupg lsb-release vim nano htop neofetch tree apt-file locate mlocate jq
+sudo apt-get install -y curl wget gpg git build-essential dkms software-properties-common apt-transport-https ca-certificates gnupg lsb-release vim nano htop neofetch tree apt-file locate mlocate jq
 
 log "Installing Additional Fonts..."
 sudo apt-get install -y fonts-ipafont-gothic fonts-ipafont-mincho fonts-wqy-microhei fonts-wqy-zenhei fonts-indic
@@ -157,7 +157,9 @@ if ! nvidia-smi >/dev/null 2>&1; then
     sudo apt-get install -y nvidia-driver-535 nvidia-dkms-535
 fi
 
-log "Installing programming languages..."
+log "Installing programming languages & libraries ..."
+
+C:\Users\kyilmaz\Documents\pinonai\popos-ws-setup\popos-ws-setup.sh
 
 if ! command -v rustc &> /dev/null; then
     log "Installing Rust..."
@@ -176,50 +178,91 @@ if ! command -v node &> /dev/null; then
     sudo apt-get install -y nodejs
 fi
 
-if [ ! -d "$HOME/anaconda3" ]; then
-    log "Installing Anaconda Python Distribution..."
-    ANACONDA_INSTALLER="Anaconda3-2024.02-1-Linux-x86_64.sh"
-    wget "https://repo.anaconda.com/archive/$ANACONDA_INSTALLER" -O /tmp/anaconda.sh
-    bash /tmp/anaconda.sh -b -p "$HOME/anaconda3"
-    rm /tmp/anaconda.sh
-    "$HOME/anaconda3/bin/conda" init bash
-    export PATH="$HOME/anaconda3/bin:$PATH"
+log "Installing CUDA toolkit..."
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb -O /tmp/cuda-keyring.deb
+sudo dpkg -i /tmp/cuda-keyring.deb
+rm /tmp/cuda-keyring.deb
+sudo apt-get update
+sudo apt-get -y install cuda-toolkit-12-2
 
-    log "Installing CUDA toolkit..."
-    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb -O /tmp/cuda-keyring.deb
-    sudo dpkg -i /tmp/cuda-keyring.deb
-    rm /tmp/cuda-keyring.deb
-    sudo apt-get update
-    sudo apt-get -y install cuda-toolkit-12-2
-
-    log "Configuring conda channels and solver..."
-    # Ensure conda-forge is the highest priority
-    "$HOME/anaconda3/bin/conda" config --add channels conda-forge || log_warning "Failed to add conda-forge channel"
-    "$HOME/anaconda3/bin/conda" config --add channels bioconda || log_warning "Failed to add bioconda channel"
-    # Set strict channel priority
-    "$HOME/anaconda3/bin/conda" config --set channel_priority strict || log_warning "Failed to set channel priority to strict"
-    # Install libmamba solver
-    "$HOME/anaconda3/bin/conda" install -y -n base conda-libmamba-solver || log_warning "Failed to install conda-libmamba-solver"
-    # Set libmamba as the default solver
-    "$HOME/anaconda3/bin/conda" config --set solver libmamba || log_warning "Failed to set solver to libmamba"
-    # Remove defaults channel if it's still there and causing issues with strict priority
-    "$HOME/anaconda3/bin/conda" config --remove channels defaults 2>/dev/null || true # Suppress error if defaults not found
-
-    log "Installing conda packages..."
-    "$HOME/anaconda3/bin/conda" install -y jupyter notebook matplotlib pandas numpy scipy scikit-learn seaborn plotly bokeh opencv transformers nltk spacy pyspark huggingface_hub pydantic streamlit gradio fastapi uvicorn torchvision torchaudio || log_warning "Some conda packages failed to install"
-
-    log "Setting up Jupyter..."
-    "$HOME/anaconda3/bin/python" -m ipykernel install --user --name=base --display-name "Python (Conda Base)"
+if [ ! -d "$HOME/miniconda3" ]; then
+    log "Downloading Miniconda Python Distribution..."
+    MINICONDA_INSTALLER="Miniconda3-latest-Linux-x86_64.sh"
+    MINICONDA_URL="https://repo.anaconda.com/miniconda/$MINICONDA_INSTALLER"
+    if wget -q "$MINICONDA_URL" -O /tmp/miniconda.sh; then
+        log "Installing Miniconda (this may take a while)..."
+        if bash /tmp/miniconda.sh -b -p "$HOME/miniconda3"; then
+            log "Initializing Conda..."
+            "$HOME/miniconda3/bin/conda" init bash || log_warning "Failed to initialize conda"
+            export PATH="$HOME/miniconda3/bin:$PATH"
+            log "Miniconda installed successfully."
+        else
+            log_warning "Failed to install Miniconda"
+        fi
+        rm -f /tmp/miniconda.sh
+    else
+        log_warning "Failed to download Miniconda"
+    fi
+else
+    log "Miniconda already installed."
+    export PATH="$HOME/miniconda3/bin:$PATH"
 fi
 
-sudo -v # Refresh Sudo cache
+# Conda channel and solver configuration (moved here to apply after miniconda install)
+if [ -d "$HOME/miniconda3" ]; then
+    # log "Configuring conda channels and solver..."
+    # Ensure conda-forge is the highest priority
+	# "$HOME/miniconda3/bin/conda" install -y anaconda-clean || log_warning "Failed to install anaconda-clean"
+	# "$HOME/miniconda3/bin/conda" clean --all -y || log_warning "Failed to clear conda cache"
+    # "$HOME/miniconda3/bin/conda" config --add channels conda-forge || log_warning "Failed to add conda-forge channel"
+    # "$HOME/miniconda3/bin/conda" config --add channels bioconda || log_warning "Failed to add bioconda channel"
+    # # Set strict channel priority
+    # "$HOME/miniconda3/bin/conda" config --set channel_priority strict || log_warning "Failed to set channel priority to strict"
+    # # Install libmamba solver
+    # "$HOME/miniconda3/bin/conda" install -y -n base conda-libmamba-solver || log_warning "Failed to install conda-libmamba-solver"
+    # # Set libmamba as the default solver
+    # "$HOME/miniconda3/bin/conda" config --set solver libmamba || log_warning "Failed to set solver to libmamba"
+    # # Remove defaults channel if it's still there and causing issues with strict priority
+    # "$HOME/miniconda3/bin/conda" config --remove channels defaults 2>/dev/null || true # Suppress error if defaults not found
+	
+	
+	# "$HOME/miniconda3/bin/conda" install -y jupyter notebook pandas fastapi pydantic gradio fastapi uvicorn || log_warning "Some conda packages failed to install"
+	# "$HOME/miniconda3/bin/conda" install -y jupyter notebook matplotlib pandas numpy scipy scikit-learn seaborn plotly bokeh opencv transformers nltk spacy pyspark huggingface_hub pydantic streamlit gradio fastapi uvicorn torchvision torchaudio || log_warning "Some conda packages failed to install"
+	# Checking Conda Environment to fixup
+	# $HOME/miniconda3/bin/conda doctor -v 
+fi
+
+
+# ===============================================================================
+
+CONDA_INSTALLER="Miniconda3-latest-Linux-x86_64.sh"
+CONDA_DIR="/opt/miniconda3"
+CONDA_PROFILE="/etc/profile.d/conda.sh"
+PACKAGES="notebook ipykernel pandas fastapi uvicorn"
+
+log "Installing miniconda and packages..."
+wget -q https://repo.anaconda.com/miniconda/$CONDA_INSTALLER || log_warning "miniconda download failed"
+bash $CONDA_INSTALLER -b -p $CONDA_DIR
+
+cat <<EOF > $CONDA_PROFILE
+# Miniconda global path
+export PATH="$CONDA_DIR/bin:\$PATH"
+EOF
+chmod +x $CONDA_PROFILE
+
+eval "$($CONDA_DIR/bin/conda shell.bash hook)"
+
+cat <<EOF > $HOME/_run_jupyter_readme.txt
+conda activate base && jupyter notebook
+EOF
+
 log "Installing Visual Studio Code..."
 wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --yes --dearmor > /tmp/packages.microsoft.gpg
 sudo install -o root -g root -m 644 /tmp/packages.microsoft.gpg /etc/apt/trusted.gpg.d/
 echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" | sudo tee /etc/apt/sources.list.d/vscode.list > /dev/null
 rm /tmp/packages.microsoft.gpg
-sudo apt-get update
-sudo apt-get install -y code
+sudo apt update
+sudo apt install -y code
 
 log "${BLUE}${DO_STEP_3} Completed${NC}"
 
@@ -241,7 +284,8 @@ sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 log "Configuring Docker..."
-sudo mkdir -p /opt/containers/{docker,portainer}
+sudo mkdir -p /opt/containers/docker
+sudo chown -R docker:docker /opt/containers/docker
 sudo tee /etc/docker/daemon.json > /dev/null <<EOF
 {
   "data-root": "/opt/containers/docker",
@@ -333,7 +377,7 @@ DISPLAY=$remoteip:0.0; export DISPLAY
 
 export PS1="\033[38;5;209m\]┌──[\033[38;5;141m\]\u\033[38;5;209m\]:\033[38;5;105m\]\h\033[38;5;231m\]\W\033[38;5;209m\]]\n\033[38;5;209m\]└─\\[\033[38;5;209m\]$\[\033[37m\] "
 
-export PATH="$HOME/.cargo/bin:$HOME/anaconda3/bin:$PATH"
+export PATH="$HOME/.cargo/bin:$HOME/miniconda3/bin:$PATH"
 
 EOF
 
