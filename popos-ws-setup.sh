@@ -52,7 +52,6 @@ is_installed() {
 }
 
 # --- Step 1: PackageKit Conflict Resolution ---
-log "${BLUE}Starting ${DO_STEP_1}${NC}"
 log "Handling PackageKit conflicts..."
 
 if pgrep -x "packagekitd" > /dev/null; then
@@ -75,10 +74,8 @@ sudo rm -f /var/lib/dpkg/lock /var/lib/dpkg/lock-frontend /var/cache/apt/archive
 
 log "Removing PackageKit..."
 sudo apt-get -y remove --purge packagekit || log_warning "Failed to remove PackageKit"
-log "${BLUE}${DO_STEP_1} Completed${NC}"
 
 # --- Step 2: System Maintenance & Optimization ---
-log "${BLUE}Starting ${DO_STEP_2}${NC}"
 log "Updating system packages..."
 sudo apt-get update
 sudo apt-get upgrade -y
