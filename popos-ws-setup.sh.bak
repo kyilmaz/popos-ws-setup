@@ -141,7 +141,7 @@ sudo apt-get install -y ffmpeg obs-studio shotcut handbrake vlc
 log "Installing system tools..."
 sudo apt-get install -y filezilla gnome-disk-utility gparted tilix flameshot ncdu ranger fzf glances iotop tmux remmina remmina-plugin-rdp p7zip-full unzip gnome-tweaks dconf-editor postgresql-client redis-tools nginx
 
-if ! is_installed rustdesk; then
+if ! command -v rustdesk &> /dev/null; then
     log "Installing RustDesk..."
     RUSTDESK_VERSION=$(curl -s https://api.github.com/repos/rustdesk/rustdesk/releases/latest | grep -Po '"tag_name": "\K[^"]*')
     wget "https://github.com/rustdesk/rustdesk/releases/latest/download/rustdesk-${RUSTDESK_VERSION}-x86_64.deb" -O /tmp/rustdesk.deb
@@ -182,73 +182,27 @@ if ! is_installed cuda-toolkit-12-2; then
     log "Installing CUDA toolkit..."
     wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb -O /tmp/cuda-keyring.deb
     sudo dpkg -i /tmp/cuda-keyring.deb
-    sudo apt-key del 7fa2af80 || log_warning "Failed to delete old CUDA keyring"
     rm /tmp/cuda-keyring.deb
     sudo apt-get update
     sudo apt-get -y install cuda-toolkit-12-2
 fi
 
 if ! command -v conda &> /dev/null; then
-    log "Installing Miniconda Python Distribution..."
-    MINICONDA_INSTALLER="Miniconda3-latest-Linux-x86_64.sh"
-    MINICONDA_URL="https://repo.anaconda.com/miniconda/$MINICONDA_INSTALLER"
 
-    if [ ! -d "$HOME/miniconda3" ]; then
-        log "Downloading Miniconda..."
-        if wget -q "$MINICONDA_URL" -O /tmp/miniconda.sh; then
-            log "Installing Miniconda (this may take a while)..."
-            if bash /tmp/miniconda.sh -b -p "$HOME/miniconda3"; then
-                log "Initializing Conda for current user..."
-                "$HOME/miniconda3/bin/conda" init bash || log_warning "Failed to initialize conda"
-                # Ensure conda is available in current script session
-                export PATH="$HOME/miniconda3/bin:$PATH"
-                log "Miniconda installed successfully."
-            else
-                log_warning "Failed to install Miniconda"
-            fi
-            rm -f /tmp/miniconda.sh
-        else
-            log_warning "Failed to download Miniconda"
-        fi
-    else
-        log "Miniconda already installed."
-        export PATH="$HOME/miniconda3/bin:$PATH"
-    fi
+    CONDA_INSTALLER="Miniconda3-latest-Linux-x86_64.sh"
+    CONDA_DIR="/opt/miniconda3"
+    
+    log "Installing miniconda and packages..."
+    wget -q https://repo.anaconda.com/miniconda/$CONDA_INSTALLER || log_warning "miniconda download failed"
+    sudo bash $CONDA_INSTALLER -b -p $CONDA_DIR
 
-    # Conda channel and solver configuration
-    if [ -d "$HOME/miniconda3" ]; then
-        log "Clearing conda cache..."
-        "$HOME/miniconda3/bin/conda" clean --all -y || log_warning "Failed to clear conda cache"
+    eval "$($CONDA_DIR/bin/conda shell.bash hook)"
 
-        log "Configuring conda channels and solver..."
-        # Ensure conda-forge is the highest priority
-        "$HOME/miniconda3/bin/conda" config --add channels conda-forge || log_warning "Failed to add conda-forge channel"
-        "$HOME/miniconda3/bin/conda" config --add channels bioconda || log_warning "Failed to add bioconda channel"
-        # Set strict channel priority
-        "$HOME/miniconda3/bin/conda" config --set channel_priority strict || log_warning "Failed to set channel priority to strict"
-        # Install libmamba solver
-        "$HOME/miniconda3/bin/conda" install -y -n base conda-libmamba-solver || log_warning "Failed to install conda-libmamba-solver"
-        # Set libmamba as the default solver
-        "$HOME/miniconda3/bin/conda" config --set solver libmamba || log_warning "Failed to set solver to libmamba"
-        # Remove defaults channel if it's still there and causing issues with strict priority
-        "$HOME/miniconda3/bin/conda" config --remove channels defaults 2>/dev/null || true # Suppress error if defaults not found
-    fi
+    sudo $CONDA_DIR/bin/conda install -y jupyter pandas fastapi uvicorn || log_warning "x nailed"
 
-    log "Installing conda packages..."
-    "$HOME/miniconda3/bin/conda" install -y \
-        jupyter notebook \
-        matplotlib pandas numpy scipy scikit-learn \
-        seaborn plotly bokeh opencv transformers \
-        nltk spacy pyspark huggingface_hub pydantic \
-        streamlit gradio fastapi uvicorn torchvision torchaudio \
-        bash-language-server dockerfile-language-server-nodejs pyright \
-        python-lsp-server sql-language-server texlab \
-        typescript-language-server yaml-language-server \
-        sqls jedi-language-server \
-        -c conda-forge || log_warning "Some conda packages failed to install"
+    sudo $CONDA_DIR/bin/conda install -y -c conda-forge bash-language-server dockerfile-language-server-nodejs pyright python-lsp-server sql-language-server texlab typescript-language-server yaml-language-server || log_warning "y nailed"
 
-    log "Setting up Jupyter..."
-    "$HOME/miniconda3/bin/python" -m ipykernel install --user --name=base --display-name "Python (Conda Base)" || log_warning "Failed to install Jupyter kernel"
+    sudo $CONDA_DIR/bin/conda install -y -c conda-forge sqls jedi-language-server || log_warning "z nailed"
 fi
 
 cat <<EOF > $HOME/_run_jupyter_readme.txt
@@ -260,8 +214,9 @@ EOF
 
 if ! command -v code &> /dev/null; then
     log "Installing Visual Studio Code..."
+    sudo apt-get install wget gpg
     wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --yes --dearmor > /tmp/packages.microsoft.gpg
-    sudo install -o root -g root -m 644 /tmp/packages.microsoft.gpg /etc/apt/keyrings/packages.microsoft.gpg
+    sudo install -D -o root -g root -m 644 /tmp/packages.microsoft.gpg /etc/apt/keyrings/packages.microsoft.gpg
     echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" |sudo tee /etc/apt/sources.list.d/vscode.list > /dev/null
     rm -f /tmp/packages.microsoft.gpg
     sudo apt update
@@ -380,7 +335,7 @@ DISPLAY=$remoteip:0.0; export DISPLAY
 
 export PS1="\033[38;5;209m\]┌──[\033[38;5;141m\]\u\033[38;5;209m\]:\033[38;5;105m\]\h\033[38;5;231m\]\W\033[38;5;209m\]]\n\033[38;5;209m\]└─\\[\033[38;5;209m\]$\[\033[37m\] "
 
-export PATH="$HOME/.cargo/bin:$HOME/miniconda3/bin:$PATH"
+export PATH="$HOME/.cargo/bin:/opt/miniconda3/bin::$PATH"
 
 EOF
 
