@@ -1,17 +1,8 @@
 #!/bin/bash
-# Pop!_OS 22.04 LTS Installation Script - 
-# Lenovo Thinkpad E15 - Nvidia MX450
+# Pop!_OS 22.04 LTS Installation Script
 # Optimized for Development workloads
 # Powered by Kyilmaz
 # 
-
-# --- Configuration ---
-# Set to true to enable installation of specific steps
-DO_STEP_1="PackageKit"
-DO_STEP_2="System_Maintenance"
-DO_STEP_3="Advanced_DevEnv"
-DO_STEP_4="Web_Browsers"
-DO_STEP_5="Containered_Env"
 
 # --- Colors ---
 GREEN='\033[0;32m'
@@ -42,7 +33,6 @@ trap 'log_error "Script failed at line $LINENO with command: $BASH_COMMAND"' ERR
 clear
 echo -e "${BLUE}========================================${NC}"
 echo -e "${GREEN}  Pop!_OS 22.04 Setup Script           ${NC}"
-echo -e "${GREEN}  Lenovo Thinkpad E15 - Nvidia MX450    ${NC}"
 echo -e "${GREEN}  Enhanced with Power Management        ${NC}"
 echo -e "${BLUE}========================================${NC}"
 
@@ -113,6 +103,29 @@ gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-from 
 gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-to 24
 gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 5000
 
+log "Ipv6 Disable and some improvements and ssh settings..."
+sudo echo -e "MTU=1500" >> /etc/sysconfig/network-scripts/ifcfg-lo
+
+echo "exec gnome-session" > ~/.xsession
+chmod +x ~/.xsession
+gsettings set org.gnome.desktop.interface enable-animations false || log_warning "Failed to disable animations"
+
+if ! grep -q 'net.ipv6.conf.all.disable_ipv6 = 1' /etc/sysctl.conf; then
+    sudo tee -a /etc/sysctl.conf > /dev/null <<EOF
+
+# Disable IPv6
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+net.ipv6.conf.lo.disable_ipv6 = 1
+EOF
+    sudo sysctl -p
+    log "IPv6 has been disabled via sysctl."
+else
+    log "IPv6 disable settings already present in /etc/sysctl.conf"
+fi
+
+sudo sed -ie 's/#UseDNS no/UseDNS no/g' /etc/ssh/sshd_config || log_warning "Failed to disable DNS resolve on ssh"
+
 log "Applying performance optimizations..."
 if ! is_installed tuned; then
     log "Installing tuned..."
@@ -149,11 +162,6 @@ if ! is_installed rustdesk; then
     rm /tmp/rustdesk.deb
 fi
 
-log "${BLUE}${DO_STEP_2} Completed${NC}"
-
-# --- Step 3: Development Environment ---
-log "${BLUE}Starting ${DO_STEP_3}${NC}"
-
 if ! nvidia-smi >/dev/null 2>&1; then
     log "Installing Nvidia drivers..."
     sudo apt-get install -y nvidia-driver-535 nvidia-dkms-535
@@ -188,7 +196,6 @@ fi
     # sudo apt-get -y install cuda-toolkit-12-2
 # fi
 
-# Check if conda is available
 if ! command -v conda &>/dev/null; then
     log "Conda not found. Installing Miniconda..."
 
@@ -216,19 +223,12 @@ if ! command -v conda &>/dev/null; then
 fi
 
 
-log "${BLUE}${DO_STEP_3} Completed${NC}"
-
-# --- Step 4: Web Browsers ---
-log "${BLUE}Starting ${DO_STEP_4}${NC}"
 log "Installing Google Chrome..."
 wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
 echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list > /dev/null
 sudo apt-get update
 sudo apt-get install -y google-chrome-stable
-log "${BLUE}${DO_STEP_4} Completed${NC}"
 
-# --- Step 5: Containerized Environments ---
-log "${BLUE}Starting ${DO_STEP_5}${NC}"
 log "Installing Docker..."
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --yes --dearmor -o /etc/apt/keyrings/docker.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
@@ -257,9 +257,6 @@ curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-
 sudo install minikube-linux-amd64 /usr/local/bin/minikube
 rm minikube-linux-amd64
 
-log "${BLUE}${DO_STEP_5} Completed${NC}"
-
-# --- Finalization ---
 log "Setting up shell configuration..."
 if ! grep -q "# Custom aliases" ~/.bashrc; then
     cp ~/.bashrc ~/.bashrc.backup.$(date +%Y%m%d)
@@ -311,7 +308,6 @@ fi
 
 cp ~/.profile ~/.profile.backup.$(date +%Y%m%d)
 cat << 'EOF' >> ~/.profile
-
 
 export TMOUT=
 
