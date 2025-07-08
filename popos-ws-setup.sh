@@ -214,7 +214,11 @@ EOF
 
 if ! command -v code &> /dev/null; then
     log "Installing Visual Studio Code..."
-    echo "code code/add-microsoft-repo boolean true" | sudo debconf-set-selections
+    sudo apt-get install wget gpg
+    wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --yes --dearmor > /tmp/packages.microsoft.gpg
+    sudo install -D -o root -g root -m 644 /tmp/packages.microsoft.gpg /etc/apt/keyrings/packages.microsoft.gpg
+    echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" |sudo tee /etc/apt/sources.list.d/vscode.list > /dev/null
+    rm -f /tmp/packages.microsoft.gpg
     sudo apt update
     sudo apt install -y code
 fi
