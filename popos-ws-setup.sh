@@ -101,8 +101,6 @@ gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-to 24
 gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 5000
 
 log "Ipv6 Disable and some improvements and ssh settings..."
-sudo echo -e "MTU=1500" >> /etc/sysconfig/network-scripts/ifcfg-lo
-
 echo "exec gnome-session" > ~/.xsession
 chmod +x ~/.xsession
 gsettings set org.gnome.desktop.interface enable-animations false || log_warning "Failed to disable animations"
