@@ -194,7 +194,7 @@ if ! command -v conda &> /dev/null; then
     
     log "Installing miniconda and packages..."
     wget -q https://repo.anaconda.com/miniconda/$CONDA_INSTALLER || log_warning "miniconda download failed"
-    sudo bash $CONDA_INSTALLER -b -p -u $CONDA_DIR
+    sudo bash $CONDA_INSTALLER -b -p $CONDA_DIR
 
     eval "$($CONDA_DIR/bin/conda shell.bash hook)"
 
