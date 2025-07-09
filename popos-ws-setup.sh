@@ -301,12 +301,18 @@ EOF
 export TMOUT=
 export LC_ALL=C
 export LANG=en_US.UTF-8
-# Function remotedisplay get remote XDISPLAY running
-function remotedisplay() {
-  remoteip=$(who am i | awk '{print $NF}' | tr -d ')''(' )
-}
-remotedisplay
-DISPLAY=$remoteip:0.0; export DISPLAY
+
+# Function remotedisplay to get ip for ssh
+if [ -n "$SSH_CONNECTION" ]; then
+  function remotedisplay() {
+    remoteip=$(who am i | awk '{print $NF}' | tr -d ')''(' )
+  }
+  remotedisplay
+  if [ -n "$remoteip" ]; then
+    DISPLAY=$remoteip:0.0
+    export DISPLAY
+  fi
+fi
 export PS1="\033[38;5;209m\]┌──[\033[38;5;141m\]\u\033[38;5;209m\]:\033[38;5;105m\]\h\033[38;5;231m\]\W\033[38;5;209m\]]\n\033[38;5;209m\]└─\[\033[38;5;209m\]$\[\033[37m\] "
 export PATH="$HOME/.cargo/bin:$HOME/miniconda3/bin:$PATH"
 EOF
