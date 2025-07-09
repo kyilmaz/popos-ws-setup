@@ -1,47 +1,73 @@
-# Pop!_OS Workstation Setup Script
+'''# Pop!_OS Workspace Setup Script
 
-This script automates the setup of a complete development and data science workstation on a fresh installation of Pop!_OS 22.04 LTS. It is specifically tailored for AI/ML development, but is also excellent for general-purpose programming.
+This script automates the setup of a complete development environment on a fresh Pop!_OS 22.04 LTS installation. It is designed to be modular and idempotent, meaning you can run it multiple times without issues, and you can choose to run only specific parts of the installation.
 
-## What it Does
+## Features
 
-The script performs the following actions:
+- **System Optimization**: Disables sleep, removes Snapd, optimizes system parameters, and disables IPv6.
+- **Essential Tools**: Installs common command-line tools like `git`, `curl`, `htop`, `neofetch`, etc.
+- **Development Languages**: Installs Node.js, Rust, Go, and Miniconda (Python).
+- **Containerization**: Installs Docker, Docker Compose, Rancher Desktop, and Minikube.
+- **System & GUI Tools**: Installs multimedia applications, system utilities like GParted, and productivity tools like Flameshot and Remmina.
+- **Shell Configuration**: Adds useful aliases and a custom prompt to `~/.bashrc` and `~/.profile`.
+- **Modular Execution**: Allows running specific setup functions individually.
 
-- **System Maintenance:** Updates and upgrades all system packages, removes `snapd`, and handles potential conflicts with `PackageKit`.
-- **Performance Optimization:**
-    - Installs and configures `tuned` with the `throughput-performance` profile.
-    - Adjusts kernel parameters (`swappiness`, `vfs_cache_pressure`) for better performance.
-    - Disables automatic suspend/sleep to keep the workstation running.
-- **Essential Tools:** Installs a wide range of development and system tools, including `git`, `build-essential`, `curl`, `htop`, `neofetch`, `remmina`, `vlc`, and more.
-- **Development Environments:**
-    - **Programming Languages:** Installs the latest versions of Rust, Go, and Node.js.
-    - **Python/AI Stack:** Installs the Anaconda Python distribution, CUDA Toolkit, and key libraries like PySpark, PyTorch, TensorFlow, Transformers, and scikit-learn.
-    - **Editors:** Installs Visual Studio Code.
-- **Containerization:**
-    - Installs and configures Docker, Docker Compose, Rancher Desktop, and Minikube.
-    - Adds the current user to the `docker` group.
-- **Shell Configuration:** Adds useful aliases and sets up the shell environment for a better workflow.
+## Prerequisites
 
-## How to Use
+- A fresh installation of Pop!_OS 22.04 LTS.
+- Sudo (administrator) privileges.
 
-1.  **Download the script:**
-    ```bash
-    git clone https://github.com/kyilmaz/popos-ws-setup.git
-    cd popos-ws-setup
-    ```
+## Usage
 
-2.  **Make it executable:**
-    ```bash
-    chmod +x popos-ws-setup.sh
-    ```
+First, make the script executable:
 
-3.  **Run it:**
-    **IMPORTANT:** Do NOT run this script as root. It will ask for `sudo` password when needed.
-    ```bash
-    ./popos-ws-setup.sh
-    ```
+```bash
+chmod +x popos-ws-setup.sh
+```
 
-4.  **Reboot:** After the script completes, reboot your system for all changes to take effect.
+### Running the Full Installation
 
-## Disclaimer
+To run the entire setup process, simply execute the script without any arguments. This is the recommended method for a new system.
 
-This script is provided as-is. While it is designed to be safe, always review a script before running it on your system. The author is not responsible for any data loss or system instability.
+```bash
+./popos-ws-setup.sh
+```
+
+### Running Specific Parts of the Installation
+
+You can run one or more specific functions by passing their names as arguments to the script. This is useful if you only want to install a specific set of tools or re-run a part of the configuration.
+
+To see a list of all available functions, use the `-h` or `--help` flag:
+
+```bash
+./popos-ws-setup.sh --help
+```
+
+This will display a help menu with the list of available functions.
+
+#### Examples
+
+- **Install only development tools:**
+
+  ```bash
+  ./popos-ws-setup.sh install_dev_tools
+  ```
+
+- **Install system tools and configure the shell:**
+
+  ```bash
+  ./popos-ws-setup.sh install_system_tools configure_shell
+  ```
+
+- **Update the system and install essential tools:**
+
+  ```bash
+  ./popos-ws-setup.sh system_update_and_optimize install_essential_tools
+  ```
+
+## Notes
+
+- The script should **not** be run as root. It will ask for sudo privileges when needed.
+- A reboot is recommended after the script finishes to ensure all changes take effect.
+- The script creates backups of your `~/.bashrc` and `~/.profile` files before modifying them.
+'''
