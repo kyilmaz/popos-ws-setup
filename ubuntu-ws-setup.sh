@@ -1,8 +1,8 @@
 #!/bin/bash
-# Pop!_OS 22.04 LTS Installation Script
+# Ubuntu 22.04 LTS Installation Script
 # Optimized for Development workloads
 # Powered by Kyilmaz
-# Refactored by Gemini
+# 
 
 # --- Configuration ---
 NODE_VERSION="22.x"
@@ -126,10 +126,13 @@ EOF
 
 install_essential_tools() {
     log "Installing essential tools..."
-    sudo apt-get install -y curl wget gpg git build-essential dkms software-properties-common apt-transport-https ca-certificates gnupg lsb-release vim nano htop neofetch tree apt-file locate mlocate jq
-    # log "Installing Additional Fonts..."
-    # sudo apt-get install -y fonts-ipafont-gothic fonts-ipafont-mincho fonts-wqy-microhei fonts-wqy-zenhei fonts-indic
-    # sudo updatedb
+    sudo apt-get install -y curl wget gpg git build-essential dkms software-properties-common apt-transport-https ca-certificates gnupg lsb-release vim nano htop neofetch tree apt-file locate mlocate jq 
+}
+
+install_extra_fonts() {
+    log "Installing Additional Fonts..."
+    sudo apt-get install -y fonts-ipafont-gothic fonts-ipafont-mincho fonts-wqy-microhei fonts-wqy-zenhei fonts-indic || log_warning "Font installation is failed"
+    sudo updatedb
 }
 
 install_multimedia_tools() {
@@ -139,7 +142,7 @@ install_multimedia_tools() {
 
 install_system_tools() {
     log "Installing system tools..."
-    sudo apt-get install -y filezilla gnome-disk-utility gparted tilix flameshot ncdu ranger fzf glances iotop tmux remmina remmina-plugin-rdp p7zip-full unzip gnome-tweaks dconf-editor postgresql-client redis-tools nginx
+    sudo apt-get install -y filezilla gnome-disk-utility gparted tilix flameshot ncdu ranger fzf glances iotop tmux remmina remmina-plugin-rdp p7zip-full unzip gnome-tweaks dconf-editor postgresql-client redis-tools
 
     if ! is_installed rustdesk; then
         log "Installing RustDesk..."
@@ -375,6 +378,7 @@ main() {
         handle_packagekit_conflict
         system_update_and_optimize
         install_essential_tools
+		install_extra_fonts
         install_multimedia_tools
         install_system_tools
         install_dev_tools
